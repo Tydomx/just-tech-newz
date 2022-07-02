@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { values } = require('lodash');
 const { User } = require('../../models');
 
 // GET /api/users (receive data) 
@@ -51,6 +52,36 @@ router.post('/', (req, res) => {
       console.log(err);
       res.status(500).json(err);
     });
+});
+
+// POST /api/users/login
+// queries User table using findOne method for email entered and assigns to req.body.email
+// if user w that email not found, message is sent back as res to client. if email is found in db, verfication of user's identity by matching password from user and hashed password from db (promise)
+router.post('/login', (req,res)=>{
+// expects {email: 'modyt@gmail.com', password: 'password123'}
+  User.findOne({
+    where: {
+      username: req.body.username
+    }
+  })
+  .then(dbUserData => {
+    if (!dbUserData) {
+      res.status(400).json({ message: 'No user with this username!' });
+      return;
+    }
+    // res.json({ user: dbUserData });
+
+    // verify user
+    // instance method called on user retrieved from db
+    const validPassword = dbUserData.checkPassword(req.body.password);
+
+    if (!validPassword) {
+      res.status(400).json({ message: 'Incorrect Password!' });
+      return;
+    }
+    res.json({ user: dbUserData, message: 'You are now logged in!' });
+
+  });
 });
 
 // UPDATE /api/users/1
