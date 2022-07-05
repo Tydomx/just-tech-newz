@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const { values } = require('lodash');
 const { User } = require('../../models');
 
 // GET /api/users (receive data) 
@@ -61,12 +60,12 @@ router.post('/login', (req,res)=>{
 // expects {email: 'modyt@gmail.com', password: 'password123'}
   User.findOne({
     where: {
-      username: req.body.username
+      email: req.body.email
     }
   })
   .then(dbUserData => {
     if (!dbUserData) {
-      res.status(400).json({ message: 'No user with this username!' });
+      res.status(400).json({ message: 'No user with this email!' });
       return;
     }
     // res.json({ user: dbUserData });
