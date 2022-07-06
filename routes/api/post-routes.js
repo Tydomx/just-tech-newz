@@ -1,13 +1,20 @@
 // including packages and modesl for Express.js API endpoints
 const router = require('express').Router();
-const { Post, User } = require('../../models');
+const { Post, User, Vote } = require('../../models');
+const sequelize = require('../../config/connection');
 
 // getting all of the users
 router.get('/', (req, res) => {
   console.log('================');
   Post.findAll({
     // configuring findAll method by customizing attributes property
-    attributes: ['id', 'post_url', 'title', 'createdAt'],
+    attributes: [
+      'id',
+      'post_url',
+      'title',
+      'createdAt',
+      [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']
+    ],
     // order prop to show client most recently added posts first, nested array that orders by createdAt column in descending order
     order: [['createdAt', 'DESC']],
     include: [
@@ -31,7 +38,13 @@ router.get('/:id', (req, res) => {
     where: {
       id: req.params.id
     },
-    attributes: ['id', 'post_url', 'title', 'createdAt'],
+    attributes: [
+      'id',
+      'post_url',
+      'title',
+      'createdAt',
+      [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']
+    ],
     include: [
       {
         model: User,
@@ -41,7 +54,7 @@ router.get('/:id', (req, res) => {
   })
     .then(dbPostData => {
       if (!dbPostData) {
-        res.status(400).json({ message: 'No post found with this id!' });
+        res.status(404).json({ message: 'No post found with this id!' });
         return;
       }
       res.json(dbPostData);
@@ -65,6 +78,18 @@ router.post('/', (req, res) => {
       console.log(err);
       res.status(500).json(err);
     })
+});
+
+// PUT route (/api/posts/upvote) for updating votes
+// keep this route before /:id route bc Express.js will think word "upvote" is a valid parameter for /:id
+router.put('/upvote', (req, res) => {
+  // passing in both user's id and post's id to create vote
+  Post.upvote(req.body, { Vote })
+    .then(updatedPostData => res.json(updatedPostData))
+    .catch(err => {
+      console.log(err);
+      res.status(400).json(err);
+    });
 });
 
 // PUT route /api/posts/1 (updating)
@@ -101,16 +126,16 @@ router.delete('/:id', (req, res) => {
       id: req.params.id
     }
   })
-  .then(dbPostData => {
-    if (!dbPostData) {
-      res.status(404).json({ message: 'No post found with this id' });
-      return;
-    }
-  })
-  .catch(err => {
-    console.log(err);
-    res.status(500).json(err);
-  })
+    .then(dbPostData => {
+      if (!dbPostData) {
+        res.status(404).json({ message: 'No post found with this id' });
+        return;
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    })
 });
 
 module.exports = router;
