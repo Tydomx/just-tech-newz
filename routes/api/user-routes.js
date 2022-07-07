@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { User, Post, Vote } = require('../../models');
+const { User, Post, Vote, Comment } = require('../../models');
 
 // GET /api/users (receive data) 
 // SQL - SELECT * FROM users
@@ -33,6 +33,14 @@ router.get('/:id', (req, res) => {
           'post_url',
           'createdAt'
         ]
+      },
+      {
+        model: Comment,
+        attributes: ['id', 'comment_text', 'createdAt'],
+        include: {
+          model: Post,
+          attributes: ['title']
+        }
       },
       {
         model: Post,

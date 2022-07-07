@@ -1,6 +1,6 @@
 // including packages and modesl for Express.js API endpoints
 const router = require('express').Router();
-const { Post, User, Vote } = require('../../models');
+const { Post, User, Vote, Comment } = require('../../models');
 const sequelize = require('../../config/connection');
 
 // getting all of the users
@@ -18,6 +18,14 @@ router.get('/', (req, res) => {
     // order prop to show client most recently added posts first, nested array that orders by createdAt column in descending order
     order: [['createdAt', 'DESC']],
     include: [
+      {
+        model: Comment,
+        attributes: ['id', 'comment_text', 'post_id', 'user_id', 'createdAt'],
+        include: {
+          model: User,
+          attributes: ['username']
+        }
+      },
       {
         model: User,
         attributes: ['username']

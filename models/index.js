@@ -2,6 +2,7 @@
 const User = require('./User');
 const Post = require('./Post');
 const Vote = require('./Vote');
+const Comment = require('./Comment');
 
 // creating assocations btwn post and user
 // user can have many posts, and posts can only belong to a single user
@@ -45,6 +46,27 @@ Post.belongsToMany(User, {
   foreignKey: 'post_id'
 });
 
+// Comment model associatons
+// comment belongs to user
+Comment.belongsTo(User, {
+  foreignKey: 'user_id'
+});
+
+// Comment belongs to a post
+Comment.belongsTo(Post, {
+  foreignKey: 'post_id'
+});
+
+// User has many comments
+User.hasMany(Comment, {
+  foreignKey: 'user_id'
+});
+
+// Posts has many comments
+Post.hasMany(Comment, {
+  foreignKey: 'post_id'
+});
 
 
-module.exports = { User, Post, Vote };
+
+module.exports = { User, Post, Vote, Comment };
