@@ -5,7 +5,7 @@ const { User, Post, Vote, Comment } = require('../../models');
 // SQL - SELECT * FROM users
 router.get('/', (req, res) => {
   User.findAll({
-    attributes: { exclude: ['password']}
+    attributes: { exclude: ['password'] }
   })
     .then(dbUserData => res.json(dbUserData))
     .catch(err => {
@@ -73,7 +73,14 @@ router.post('/', (req, res) => {
     email: req.body.email,
     password: req.body.password
   })
-    .then(dbUserData => res.json(dbUserData))
+    .then(dbUserData => {
+      // allows our server easy access to user's 'user_id', 'username', and boolean describing whether or not user is logged in
+      req.session.user_id = dbUserData.id;
+      req.session.username = dbUserData.username;
+      req.session.loggedIn = true;
+
+      res.json(dbUserData);
+    })
     .catch(err => {
       console.log(err);
       res.status(500).json(err);
@@ -83,31 +90,49 @@ router.post('/', (req, res) => {
 // POST /api/users/login
 // queries User table using findOne method for email entered and assigns to req.body.email
 // if user w that email not found, message is sent back as res to client. if email is found in db, verfication of user's identity by matching password from user and hashed password from db (promise)
-router.post('/login', (req,res)=>{
-// expects {email: 'modyt@gmail.com', password: 'password123'}
+router.post('/login', (req, res) => {
+  // expects {email: 'modyt@gmail.com', password: 'password123'}
   User.findOne({
     where: {
       email: req.body.email
     }
   })
-  .then(dbUserData => {
-    if (!dbUserData) {
-      res.status(400).json({ message: 'No user with this email!' });
-      return;
-    }
-    // res.json({ user: dbUserData });
+    .then(dbUserData => {
+      if (!dbUserData) {
+        res.status(400).json({ message: 'No user with this email!' });
+        return;
+      }
+      // res.json({ user: dbUserData });
 
-    // verify user
-    // instance method called on user retrieved from db
-    const validPassword = dbUserData.checkPassword(req.body.password);
+      // verify user
+      // instance method called on user retrieved from db
+      const validPassword = dbUserData.checkPassword(req.body.password);
 
-    if (!validPassword) {
-      res.status(400).json({ message: 'Incorrect Password!' });
-      return;
-    }
-    res.json({ user: dbUserData, message: 'You are now logged in!' });
+      if (!validPassword) {
+        res.status(400).json({ message: 'Incorrect Password!' });
+        return;
+      }
 
-  });
+      req.session.save(() => {
+        // declare session variables
+        req.session.user_id = dbUserData.id;
+        req.session.username = dbUserData.username;
+        req.session.loggedIn = true;
+
+        res.json({ user: dbUserData, message: 'You are now logged in!' });
+      });
+    });
+});
+
+// POST logout
+router.post('/logout', (req, res) => {
+  if (req.session.loggedIn) {
+    req.session.destroy(() => {
+      res.status(204).end();
+    });
+  } else {
+    res.status(404).end();
+  }
 });
 
 // UPDATE /api/users/1
