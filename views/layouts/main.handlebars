@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 
-<header>
+{{!-- <header>
   <h1>
     <a href="/">Just Tech News</a>
   </h1>
@@ -16,7 +16,7 @@
     <button id="logout" class="btn-no-style">logout</button>
     <a href="/login">login</a>
   </nav>
-</header>
+</header> --}}
 
 <body>
   <div class="wrapper">
@@ -24,6 +24,13 @@
       <h1>
         <a href="/">Just Tech News</a>
       </h1>
+      <nav>
+        {{#if loggedIn}}
+        <button id="logout" class="btn-no-style">logout</button>
+        {{else}}
+        <a href="/login">login</a>
+        {{/if}}
+      </nav>
     </header>
     <main>
       {{{ body }}}
@@ -34,7 +41,9 @@
   </div>
 
 {{!-- logout button to every page --}}
+{{#if loggedIn}}
   <script src="/javascript/logout.js"></script>
+{{/if}}
 
 </body>
 
