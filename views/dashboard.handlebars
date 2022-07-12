@@ -1,0 +1,35 @@
+<section>
+  <h2>Create New Post</h2>
+
+  <form class="new-post-form">
+    <div>
+      <label for="post-title">Title</label>
+      <input type="text" id="post-title" name="post-title" />
+    </div>
+    <div>
+      <label for="post-url">Link</label>
+      <input id="post-url" name="post-url" />
+    </div>
+    <button type="submit" class="btn">Create</button>
+  </form>
+</section>
+
+{{!-- wrapped in helper, so users won't see any content if they have no posts --}}
+{{#if posts.length}}
+<section>
+  <h2>Your Posts</h2>
+  <ol>
+    {{#each posts as |post|}}
+    <li>
+      {{!-- displaying details for each post --}}
+      {{> post-info post}}
+      {{!-- link that routes users to separate page (e.g., /dashboard/edit/1) --}}
+      <a href="/dashboard/edit/{{post.id}}" class="edit-link">Edit Post</a>
+    </li>
+    {{/each}}
+  </ol>
+</section>
+{{/if}}
+
+{{!-- linking add-post.js to dashboard --}}
+<script src="/javascript/add-post.js"></script>
